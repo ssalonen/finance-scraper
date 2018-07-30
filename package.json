@@ -1,0 +1,32 @@
+{
+  "name": "finance-scraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "package": "serverless package",
+    "test": "mocha",
+    "test-w": "mocha -w"
+  },
+  "author": "Sami Salonen",
+  "license": "",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^5.2.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "mocha": "^5.2.0",
+    "nock": "^9.4.3",
+    "serverless": "^1.28.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.282.1",
+    "cheerio": "^1.0.0-rc.2",
+    "moment-timezone": "^0.5.21",
+    "node-fetch": "^2.2.0"
+  }
+}
