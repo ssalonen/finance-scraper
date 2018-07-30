@@ -1,0 +1,6 @@
+.serverless
+.terraform
+node_modules
+terraform.tfstate
+terraform.tfstate.backup
+/out.txt
