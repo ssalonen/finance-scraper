@@ -5,6 +5,10 @@
 const fetch = require('node-fetch')
 const cheerio = require('cheerio')
 const moment = require('moment-timezone')
+const querystring = require('querystring');
+const crypto = require('crypto');
+const dynamodb = require('./dynamodb-service')
+const s3 = require('./s3-service')
 
 moment.tz.add('EEST|EET-summer|-30|0|')
 moment.tz.add('EEDT|EET-summer|-30|0|')
@@ -31,6 +35,9 @@ moment.tz.add('EEDT|EET-summer|-30|0|')
 
 // SELIGSON_URLS = [url for url in _INSTRUMENT_URL_TO_NAME if 'seligson' in url]
 
+const BUCKET = 'finance-scraper-raw-responses'
+const TABLE_NAME = 'finance-scraper'
+
 const ISIN_TO_NAME = {
   FI0009013403: 'Kone Corporation',
   IE00B4L5Y983: 'iShares Core MSCI World UCITS ETF',
@@ -39,7 +46,7 @@ const ISIN_TO_NAME = {
 
 const RE_EXTRACT_VALUE = /(\d+,\d+)/
 
-function extractValueFromOverviewKeyStats ($, colRegexp) {
+function extractValueFromOverviewKeyStats($, colRegexp) {
   let rowIndex
   $('.overviewKeyStatsTable tr td:nth-child(1)')
     .each((i, node) => {
@@ -53,7 +60,7 @@ function extractValueFromOverviewKeyStats ($, colRegexp) {
   return $(`.overviewKeyStatsTable tr:nth-child(${rowIndex + 1}) td:nth-child(3)`).text()
 }
 
-function morningStarEtfOrFundParser (url, textBody) {
+function morningStarEtfOrFundParser(url, textBody) {
   const $ = cheerio.load(textBody)
   const dateDDMMYY = $('.overviewKeyStatsTable tr:nth-child(2) td:nth-child(1)').text().slice(-10)
   const valueDate = moment(
@@ -69,7 +76,7 @@ function morningStarEtfOrFundParser (url, textBody) {
   return { name, isin, value, valueDate }
 }
 
-function morningStarStockParser (url, textBody) {
+function morningStarStockParser(url, textBody) {
   const $ = cheerio.load(textBody)
   const priceItem = $('span#Col0Price.price').text().replace(',', '.')
   const value = Number.parseFloat(priceItem)
@@ -88,18 +95,18 @@ function morningStarStockParser (url, textBody) {
   return { isin, name, value, valueDate }
 }
 
-function seligsonParser (url, textBody) {
+function seligsonParser(url, textBody) {
   const c = cheerio.load(textBody)
-  return { name: 'seligson', 'value': 4.0, 'value-date': '2017' }
+  return { name: 'seligson', 'value': 4.0, 'valueDate': '2017' }
 }
 
-function validateParsedData (parsedData) {
+function validateParsedData(parsedData) {
   if (!parsedData.name || !parsedData.value || !parsedData.valueDate) {
     throw Error('Invalid parsed data')
   }
 }
 
-function getParserForUrl (url) {
+function getParserForUrl(url) {
   if (url.startsWith('http://www.morningstar.fi/fi/etf/snapshot/snapshot.aspx?id=')) {
     return morningStarEtfOrFundParser
   } else if (url.startsWith('http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=')) {
@@ -112,22 +119,58 @@ function getParserForUrl (url) {
   throw Error(`No parser for ${url}`)
 }
 
-async function parse (url) {
+async function storeRawToS3(url, fetchDate, textBody, bucket) {
+  const urlHash = crypto.createHash('sha512').update(url).digest('hex')
+  const key = `${fetchDate.replace(':', '')}-${urlHash}`
+  var tags = querystring.stringify({ url })
+  await s3.putObject({
+    Body: textBody,
+    Bucket: bucket,
+    Key: key,
+    ServerSideEncryption: 'AES256',
+    Tagging: tags
+  }).promise()
+}
+
+async function storeParsedToDynamoDB(tableName, isin, value, valueDate) {
+  await dynamodb.putItem({
+    Item: {
+      'isin': {
+        S: isin
+      },
+      'value': {
+        N: value.toString()
+      },
+      'valueDate': {
+        S: valueDate
+      }
+    },
+    ReturnConsumedCapacity: "TOTAL",
+    TableName: tableName
+  }).promise()
+}
+
+async function processUrl(bucket, tableName, url) {
   const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error(`HTTP status != 200 returned from url ${url}`)
+  }
   const fetchDate = moment().tz('UTC').format()
   const textBody = await res.text()
+  storeRawToS3(url, fetchDate, textBody, bucket)
   const parser = getParserForUrl(url)
   const parsedData = parser(url, textBody)
   validateParsedData(parsedData)
-  return {...parsedData, fetchDate, rawData: textBody}
+  storeParsedToDynamoDB(tableName, parsedData.isin, parsedData.value, parsedData.valueDate)
 }
-exports.parseUrl = parse
+exports.processUrl = processUrl
 
-async function processAll (urls) {
+async function processAll(bucket, table, urls) {
+  // TODO: error handling
   return Promise.all(
     urls
-    .map(url => parse(url))
-    .map(parsedData => {console.log(parsedData); /* todo write to s3, and dynamo! how to make this concurrently?*/ return parsedData })
+      .map(url => processUrl(bucket, table, url))
+      .map(parsedData => { console.log(parsedData); /* todo write to s3, and dynamo! how to make this concurrently?*/ return parsedData })
   )
 }
 exports.processAll = processAll
@@ -136,6 +179,6 @@ exports.handler = function (event, context, callback) {
   console.log('Event: ', JSON.stringify(event, null, '\t'))
   console.log('Context: ', JSON.stringify(context, null, '\t'))
 
-  processAll(event.urls)
+  processAll(BUCKET, TABLE_NAME, event.urls)
   callback(null)
 }

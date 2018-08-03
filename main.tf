@@ -39,13 +39,8 @@ EOF
     range_key      = "value_date"
 
     attribute {
-      name = "url"
+      name = "isin"
       type = "S"
-    }
-
-    attribute {
-      name = "raw_html"
-      type = "B"
     }
 
     attribute {

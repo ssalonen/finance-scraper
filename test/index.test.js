@@ -1,14 +1,22 @@
 /* eslint-env node, mocha */
 
+const sinon = require('sinon')
+
 const chai = require('chai')
 chai.use(require('chai-as-promised'))
 
 const { expect } = chai
 const nock = require('nock')
 const index = require('../index')
-const parse = index.parseUrl
+const dynamodb = require('./dynamodb-service')
+const s3 = require('./s3-service')
+
+const processUrl = index.processUrl
 const processAll = index.processAll
 const responses = require('./morningstar_responses')
+
+const BUCKET = 'dummy-bucket'
+const TABLE = 'dummy-table'
 
 describe('Parsing tests', () => {
   beforeEach(() => {
@@ -23,10 +31,17 @@ describe('Parsing tests', () => {
     nock('http://www.morningstar.fi')
       .get('/fi/funds/snapshot/snapshot.aspx?id=myfund')
       .reply(200, responses.fund)
+
+    let dynamoStub = sinon.stub(dynamodb, 'PutItem')
+    dynamoStub.withArgs({
+    }).resolves(undefined)
+    let s3Stub = sinon.stub(s3, 'putObject')
+    s3Stub.withArgs({
+    }).resolves(undefined)
   })
 
   it('etf parsed correctly', () => {
-    return expect(parse('http://www.morningstar.fi/fi/etf/snapshot/snapshot.aspx?id=myetf'))
+    return expect(processUrl(BUCKET, TABLE, 'http://www.morningstar.fi/fi/etf/snapshot/snapshot.aspx?id=myetf'))
       .eventually.to.deep.include(
         {
           isin: 'IE00B4L5Y983',
@@ -38,7 +53,7 @@ describe('Parsing tests', () => {
   })
 
   it('stock parsed correctly', () => {
-    return expect(parse('http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid'))
+    return expect(processUrl(BUCKET, TABLE, 'http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid'))
       .eventually.to.deep.include(
         {
           isin: 'FI0009013403',
@@ -50,7 +65,7 @@ describe('Parsing tests', () => {
   })
 
   it('fund parsed correctly', () => {
-    return expect(parse('http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund'))
+    return expect(processUrl(BUCKET, TABLE, 'http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund'))
       .eventually.to.deep.include(
         {
           isin: 'NO0010140502',
@@ -62,7 +77,7 @@ describe('Parsing tests', () => {
   })
 
   it('fund+stock processAll', async () => {
-    const actual = await processAll([
+    const actual = await processAll(BUCKET, TABLE, [
       'http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid',
       'http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund'
     ])
