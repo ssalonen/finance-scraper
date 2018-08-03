@@ -2,7 +2,7 @@
   "name": "finance-scraper",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "package": "serverless package",
     "test": "mocha",
@@ -12,7 +12,7 @@
   "license": "",
   "devDependencies": {
     "chai": "^4.1.2",
-    "chai-as-promised": "^7.1.1",
+    "chai-sinon": "^2.8.1",
     "eslint": "^5.2.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.13.0",
