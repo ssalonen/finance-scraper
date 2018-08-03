@@ -20,7 +20,7 @@ const BUCKET = 'dummy-bucket'
 const TABLE = 'dummy-table'
 
 describe('Tests', () => {
-  let dynamoStub, s3Stub, clock, sandbox
+  let dynamoStub, s3Stub, sandbox
 
   before(() => {
     sandbox = sinon.createSandbox()
