@@ -3,17 +3,17 @@ provider "aws" {
   profile = "terraform"
 }
 
-resource "aws_lambda_function" "demo_lambda" {
-  function_name    = "demo_lambda"
+resource "aws_lambda_function" "scraper_lambda" {
+  function_name    = "scraper_lambda"
   handler          = "index.handler"
   runtime          = "nodejs8.10"
   filename         = ".serverless/finance_scraper.zip"
   source_code_hash = "${base64sha256(file(".serverless/finance_scraper.zip"))}"
-  role             = "${aws_iam_role.lambda_exec_role.arn}"
+  role             = "${aws_iam_role.scraper_role.arn}"
 }
 
-resource "aws_iam_role" "lambda_exec_role" {
-  name = "lambda_exec_role"
+resource "aws_iam_role" "scraper_role" {
+  name = "scraper_role"
 
   assume_role_policy = <<EOF
 {
@@ -25,32 +25,61 @@ resource "aws_iam_role" "lambda_exec_role" {
         "Service": "lambda.amazonaws.com"
       },
       "Effect": "Allow",
-      "Sid": ""
+      "Sid": "allows-lambda-to-execute"
+    },
+    {
+      "Action": [
+          "dynamodb:PutItem",
+          "dynamodb:Scan",
+          "dynamodb:Query"
+      ],
+      "Effect": "Allow",
+      "Sid": "allows-minimal-dynamodb",
+      "Resource": "${aws_dynamodb_table.finance_scraper.arn}"
+    },
+    {
+        "Action": [
+            "s3:PutObject",
+            "s3:ListBucket"
+        ],
+        "Resource": [
+            "${aws_s3_bucket.scraper_bucket.arn}/*",
+            "${aws_s3_bucket.scraper_bucket.arn}"
+        ],
+        "Effect": "Allow",
+        "Sid": "allows-minimal-s3"
     }
   ]
 }
 EOF
+}
 
-  resource "aws_dynamodb_table" "finance_scraper" {
-    name           = "finance_scraper"
-    read_capacity  = 2
-    write_capacity = 2
-    hash_key       = "url"
-    range_key      = "value_date"
+resource "aws_s3_bucket" "scraper_bucket" {
+  bucket = "finance-scraper-bucket"
+  acl = "private"
+}
 
-    attribute {
-      name = "isin"
-      type = "S"
-    }
+resource "aws_dynamodb_table" "finance_scraper" {
+  name           = "finance_scraper"
+  read_capacity  = 2
+  write_capacity = 2
+  hash_key       = "isin"
+  range_key      = "value_date"
 
-    attribute {
-      name = "value_date"
-      type = "S"
-    }
-
-    attribute {
-      name = "value"
-      type = "N"
-    }
+  attribute {
+    name = "isin"
+    type = "S"
   }
+
+  attribute {
+    name = "value_date"
+    type = "S"
+  }
+
+  /* Will be introduced by the application
+  *  attribute {
+  *   name = "value"
+  *   type = "N"
+  *  }
+  */
 }
