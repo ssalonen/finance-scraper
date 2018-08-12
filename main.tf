@@ -5,7 +5,7 @@ provider "aws" {
 
 resource "aws_lambda_function" "scraper_lambda" {
   function_name    = "scraper_lambda"
-  handler          = "index.handler"
+  handler          = "lib/index.handler"
   runtime          = "nodejs8.10"
   filename         = ".serverless/finance_scraper.zip"
   source_code_hash = "${base64sha256(file(".serverless/finance_scraper.zip"))}"
