@@ -91,8 +91,8 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key: '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
-      ServerSideEncryption: 'AES256',
-      Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
+      ServerSideEncryption: 'AES256' // ,
+      // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
     expect(dynamoStub).to.have.been.calledWith({
       Item: {
@@ -120,8 +120,8 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key: '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
-      ServerSideEncryption: 'AES256',
-      Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
+      ServerSideEncryption: 'AES256' // ,
+      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
     expect(dynamoStub).to.have.been.calledWith({
       Item: {
@@ -160,8 +160,8 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key: '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
-      ServerSideEncryption: 'AES256',
-      Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
+      ServerSideEncryption: 'AES256'// ,
+      // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
     expect(dynamoStub).to.have.been.calledWith({
       Item: {
@@ -178,8 +178,8 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key: '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
-      ServerSideEncryption: 'AES256',
-      Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
+      ServerSideEncryption: 'AES256'// ,
+      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
     expect(dynamoStub).to.have.been.calledWith({
       Item: {
