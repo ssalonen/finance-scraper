@@ -17,41 +17,58 @@ resource "aws_iam_role" "scraper_role" {
 
   assume_role_policy = <<EOF
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": "allows-lambda-to-execute"
-    },
-    {
-      "Action": [
-          "dynamodb:PutItem",
-          "dynamodb:Scan",
-          "dynamodb:Query"
-      ],
-      "Effect": "Allow",
-      "Sid": "allows-minimal-dynamodb",
-      "Resource": "${aws_dynamodb_table.finance_scraper.arn}"
-    },
-    {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
+        },
+        "Effect": "Allow",
+        "Sid": "AllowsLambdaToExecute"
+      }
+    ]
+  }
+EOF
+}
+
+resource "aws_iam_policy" "scraper_policy" {
+    name        = "scraper_policy"
+    description = "Policy for the scraper to access AWS services"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
         "Action": [
-            "s3:PutObject",
-            "s3:ListBucket"
-        ],
-        "Resource": [
-            "${aws_s3_bucket.scraper_bucket.arn}/*",
-            "${aws_s3_bucket.scraper_bucket.arn}"
+            "dynamodb:PutItem",
+            "dynamodb:Scan",
+            "dynamodb:Query"
         ],
         "Effect": "Allow",
-        "Sid": "allows-minimal-s3"
-    }
-  ]
-}
+        "Sid": "AllowsMinimalDynamodb",
+        "Resource": "${aws_dynamodb_table.finance_scraper.arn}"
+      },
+      {
+          "Action": [
+              "s3:PutObject",
+              "s3:ListBucket"
+          ],
+          "Resource": [
+              "${aws_s3_bucket.scraper_bucket.arn}/*",
+              "${aws_s3_bucket.scraper_bucket.arn}"
+          ],
+          "Effect": "Allow",
+          "Sid": "AllowsMinimalS3"
+      }
+    ]
+  }
 EOF
+}
+
+resource "aws_iam_role_policy_attachment" "scraper-policy-attach" {
+    role       = "${aws_iam_role.scraper_role.name}"
+    policy_arn = "${aws_iam_policy.scraper_policy.arn}"
 }
 
 resource "aws_s3_bucket" "scraper_bucket" {
