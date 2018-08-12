@@ -9,7 +9,9 @@ invoke_local:
 	cat example.json | serverless invoke local -f scraper
 
 invoke:
-	cat example.json | serverless invoke -f scraper
+	rm out.txt | true
+	aws lambda invoke --region eu-west-1 --function-name scraper_lambda --payload file://./example.json --profile terraform out.txt
+	cat out.txt
 
 plan:
 	terraform plan
