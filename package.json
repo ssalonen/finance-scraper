@@ -21,7 +21,7 @@
     "eslint-plugin-standard": "^3.1.0",
     "mocha": "^5.2.0",
     "nock": "^9.4.3",
-    "serverless": "^1.28.0",
+    "serverless": "^1.30.0",
     "sinon": "^6.1.4"
   },
   "dependencies": {
