@@ -10,6 +10,7 @@ resource "aws_lambda_function" "scraper_lambda" {
   filename         = ".serverless/finance_scraper.zip"
   source_code_hash = "${base64sha256(file(".serverless/finance_scraper.zip"))}"
   role             = "${aws_iam_role.scraper_role.arn}"
+  timeout          = "120"
 }
 
 resource "aws_iam_role" "scraper_role" {
