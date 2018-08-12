@@ -2,7 +2,7 @@
 
 const sinon = require('sinon')
 const chai = require('chai')
-chai.use(require('chai-sinon'));
+chai.use(require('sinon-chai'))
 
 // AWS services to be mocked. Imported before main code
 const dynamodb = require('../lib/dynamodb-service')
@@ -10,10 +10,6 @@ const s3 = require('../lib/s3-service')
 
 const { expect } = chai
 const nock = require('nock')
-const index = require('../lib/index')
-
-const processUrl = index.processUrl
-const processAll = index.processAll
 const responses = require('./morningstar_responses')
 
 const BUCKET = 'dummy-bucket'
@@ -21,17 +17,31 @@ const TABLE = 'dummy-table'
 
 describe('Tests', () => {
   let dynamoStub, s3Stub, sandbox
+  let index, processUrl, processAll
 
   before(() => {
     sandbox = sinon.createSandbox()
+
+    dynamoStub = sandbox.stub(dynamodb, 'putItem')
+    s3Stub = sandbox.stub(s3, 'putObject')
+
+    // 2018-08-03 13:04:56
+    sandbox.useFakeTimers(1533301496000)
+
+    dynamoStub.returns({
+      promise: () => Promise.resolve(undefined)
+    })
+
+    s3Stub.returns({
+      promise: () => Promise.resolve(undefined)
+    })
+
+    index = require('../lib/index')
+    processUrl = index.processUrl
+    processAll = index.processAll
   })
 
   beforeEach(() => {
-    dynamoStub = sandbox.stub(dynamodb, 'putItem')
-    s3Stub = sandbox.stub(s3, 'putObject')
-    // 2018-08-03 13:04:56
-    clock = sandbox.useFakeTimers(1533301496000)
-
     nock('http://www.morningstar.fi')
       .get('/fi/etf/snapshot/snapshot.aspx?id=myetf')
       .reply(200, responses.etf)
@@ -43,17 +53,14 @@ describe('Tests', () => {
     nock('http://www.morningstar.fi')
       .get('/fi/funds/snapshot/snapshot.aspx?id=myfund')
       .reply(200, responses.fund)
-
-    dynamoStub.returns({
-      promise: () => Promise.resolve(undefined)
-    })
-
-    s3Stub.returns({
-      promise: () => Promise.resolve(undefined)
-    })
   })
 
   afterEach(() => {
+    sandbox.resetHistory()
+    nock.cleanAll()
+  })
+
+  after(() => {
     sandbox.restore()
   })
 
@@ -147,7 +154,6 @@ describe('Tests', () => {
       value: 86.82,
       valueDate: '2018-07-25T12:00:00Z'
     })
-
 
     // stock
     expect(s3Stub).to.have.been.calledWith({
