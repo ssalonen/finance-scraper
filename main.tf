@@ -92,7 +92,7 @@ resource "aws_dynamodb_table" "finance_scraper" {
   read_capacity  = 2
   write_capacity = 2
   hash_key       = "isin"
-  range_key      = "value_date"
+  range_key      = "valueDate"
 
   attribute {
     name = "isin"
@@ -100,7 +100,7 @@ resource "aws_dynamodb_table" "finance_scraper" {
   }
 
   attribute {
-    name = "value_date"
+    name = "valueDate"
     type = "S"
   }
 
