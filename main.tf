@@ -61,7 +61,17 @@ resource "aws_iam_policy" "scraper_policy" {
           ],
           "Effect": "Allow",
           "Sid": "AllowsMinimalS3"
-      }
+      },
+      {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*",
+      "Effect": "Allow",
+      "Sid": "AllowLogToCloudWatch"
+    }
     ]
   }
 EOF
