@@ -1,1 +1,6 @@
-{"urls": ["http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=0P0000A5Z8]3]0]E0WWE$$ALL"]  }
+{
+  "urls": [
+    "http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=0P0000A5Z8]3]0]E0WWE$$ALL",
+    "https://www.seligson.fi/graafit/rahamarkkina.csv"
+  ]
+}
