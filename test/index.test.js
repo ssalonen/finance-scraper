@@ -22,7 +22,7 @@ describe('Tests', () => {
   before(() => {
     sandbox = sinon.createSandbox()
 
-    dynamoStub = sandbox.stub(dynamodb, 'putItem')
+    dynamoStub = sandbox.stub(dynamodb, 'batchWriteItem')
     s3Stub = sandbox.stub(s3, 'putObject')
 
     // 2018-08-03 13:04:56
@@ -65,72 +65,90 @@ describe('Tests', () => {
   })
 
   it('etf parsed correctly', async () => {
-    const parsedData = await processUrl(BUCKET, TABLE, 'http://www.morningstar.fi/fi/etf/snapshot/snapshot.aspx?id=myetf')
-    expect(parsedData)
-      .to.deep.include(
-        {
-          isin: 'IE00B4L5Y983',
-          name: 'iShares Core MSCI World UCITS ETF',
-          value: 47.84,
-          valueDate: '2018-07-24T12:00:00Z'
-        }
-      )
+    const parsedData = await processUrl(
+      BUCKET,
+      TABLE,
+      'http://www.morningstar.fi/fi/etf/snapshot/snapshot.aspx?id=myetf'
+    )
+    expect(parsedData).to.deep.include({
+      isin: 'IE00B4L5Y983',
+      name: 'iShares Core MSCI World UCITS ETF',
+      value: 47.84,
+      valueDate: '2018-07-24T12:00:00Z'
+    })
   })
 
   it('stock processed correctly', async () => {
-    const parsedData = await processUrl(BUCKET, TABLE, 'http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid')
-    expect(parsedData)
-      .to.deep.include(
-        {
-          isin: 'FI0009013403',
-          name: 'Kone Corporation',
-          value: 48.01,
-          valueDate: '2018-07-26T14:30:29Z'
-        })
+    const parsedData = await processUrl(
+      BUCKET,
+      TABLE,
+      'http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid'
+    )
+    expect(parsedData).to.deep.include({
+      isin: 'FI0009013403',
+      name: 'Kone Corporation',
+      value: 48.01,
+      valueDate: '2018-07-26T14:30:29Z'
+    })
     expect(s3Stub).to.have.been.calledWith({
       Body: responses.stock.toString(),
       Bucket: BUCKET,
-      Key: '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
+      Key:
+        '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
     expect(dynamoStub).to.have.been.calledWith({
-      Item: {
-        isin: { S: 'FI0009013403' },
-        value: { N: '48.01' },
-        valueDate: { S: '2018-07-26T14:30:29Z' }
-      },
-      ReturnConsumedCapacity: 'TOTAL',
-      TableName: 'dummy-table'
+      RequestItems: {
+        'dummy-table': [
+          {
+            PutRequest: {
+              Item: {
+                isin: { S: 'FI0009013403' },
+                value: { N: '48.01' },
+                valueDate: { S: '2018-07-26T14:30:29Z' }
+              }
+            }
+          }
+        ]
+      }
     })
   })
 
   it('fund processed correctly', async () => {
-    const parsedData = await processUrl(BUCKET, TABLE, 'http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund')
-    expect(parsedData)
-      .to.deep.include(
-        {
-          isin: 'NO0010140502',
-          name: 'SKAGEN Kon-Tiki A (EUR)',
-          value: 86.82,
-          valueDate: '2018-07-25T12:00:00Z'
-        }
-      )
+    const parsedData = await processUrl(
+      BUCKET,
+      TABLE,
+      'http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund'
+    )
+    expect(parsedData).to.deep.include({
+      isin: 'NO0010140502',
+      name: 'SKAGEN Kon-Tiki A (EUR)',
+      value: 86.82,
+      valueDate: '2018-07-25T12:00:00Z'
+    })
     expect(s3Stub).to.have.been.calledWith({
       Body: responses.fund.toString(),
       Bucket: BUCKET,
-      Key: '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
+      Key:
+        '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
     expect(dynamoStub).to.have.been.calledWith({
-      Item: {
-        isin: { S: 'NO0010140502' },
-        value: { N: '86.82' },
-        valueDate: { S: '2018-07-25T12:00:00Z' }
-      },
-      ReturnConsumedCapacity: 'TOTAL',
-      TableName: 'dummy-table'
+      RequestItems: {
+        'dummy-table': [
+          {
+            PutRequest: {
+              Item: {
+                isin: { S: 'NO0010140502' },
+                value: { N: '86.82' },
+                valueDate: { S: '2018-07-25T12:00:00Z' }
+              }
+            }
+          }
+        ]
+      }
     })
   })
 
@@ -159,36 +177,50 @@ describe('Tests', () => {
     expect(s3Stub).to.have.been.calledWith({
       Body: responses.stock.toString(),
       Bucket: BUCKET,
-      Key: '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
-      ServerSideEncryption: 'AES256'// ,
+      Key:
+        '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
+      ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
     expect(dynamoStub).to.have.been.calledWith({
-      Item: {
-        isin: { S: 'FI0009013403' },
-        value: { N: '48.01' },
-        valueDate: { S: '2018-07-26T14:30:29Z' }
-      },
-      ReturnConsumedCapacity: 'TOTAL',
-      TableName: 'dummy-table'
+      RequestItems: {
+        'dummy-table': [
+          {
+            PutRequest: {
+              Item: {
+                isin: { S: 'FI0009013403' },
+                value: { N: '48.01' },
+                valueDate: { S: '2018-07-26T14:30:29Z' }
+              }
+            }
+          }
+        ]
+      }
     })
 
     // fund
     expect(s3Stub).to.have.been.calledWith({
       Body: responses.fund.toString(),
       Bucket: BUCKET,
-      Key: '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
-      ServerSideEncryption: 'AES256'// ,
+      Key:
+        '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
+      ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
     expect(dynamoStub).to.have.been.calledWith({
-      Item: {
-        isin: { S: 'NO0010140502' },
-        value: { N: '86.82' },
-        valueDate: { S: '2018-07-25T12:00:00Z' }
-      },
-      ReturnConsumedCapacity: 'TOTAL',
-      TableName: 'dummy-table'
+      RequestItems: {
+        'dummy-table': [
+          {
+            PutRequest: {
+              Item: {
+                isin: { S: 'NO0010140502' },
+                value: { N: '86.82' },
+                valueDate: { S: '2018-07-25T12:00:00Z' }
+              }
+            }
+          }
+        ]
+      }
     })
   })
 })

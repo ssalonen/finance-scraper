@@ -43,6 +43,7 @@ resource "aws_iam_policy" "scraper_policy" {
       {
         "Action": [
             "dynamodb:PutItem",
+            "dynamodb:BatchWriteItem",
             "dynamodb:Scan",
             "dynamodb:Query"
         ],
