@@ -5,8 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "package": "serverless package",
-    "test": "mocha",
-    "test-w": "mocha -w"
+    "test": "standard && mocha",
+    "test-w": "standard && mocha -w"
   },
   "author": "Sami Salonen",
   "license": "",
@@ -22,7 +22,8 @@
     "nock": "^9.4.3",
     "serverless": "^1.30.0",
     "sinon": "^6.1.4",
-    "sinon-chai": "^3.2.0"
+    "sinon-chai": "^3.2.0",
+    "standard": "^11.0.1"
   },
   "dependencies": {
     "aws-sdk": "^2.282.1",
