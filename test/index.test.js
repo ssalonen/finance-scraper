@@ -100,7 +100,7 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-d83e521012491f09a4245647a205250be5810f8c8e5124430c38442c192bcc63',
+        '2018-08-03T130456Z-FI0009013403',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
@@ -137,7 +137,7 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-92217a29e3094cfb0c6917c71ece2db778cb6730ccc7ebba04c611f1caaf355d',
+        '2018-08-03T130456Z-NO0010140502',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
@@ -182,7 +182,7 @@ describe('Tests', () => {
       Body: responses.seligsonRahamarkkina.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-be33f13674660f18a77fddb6ae8d69697575d9b619db1670917e521b0f206735',
+        '2018-08-03T130456Z-FI0008801733',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
@@ -215,7 +215,7 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-d83e521012491f09a4245647a205250be5810f8c8e5124430c38442c192bcc63',
+        '2018-08-03T130456Z-FI0009013403',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
@@ -240,7 +240,7 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-92217a29e3094cfb0c6917c71ece2db778cb6730ccc7ebba04c611f1caaf355d',
+        '2018-08-03T130456Z-NO0010140502',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
