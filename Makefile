@@ -14,6 +14,11 @@ invoke_scraper:
 	aws lambda invoke --region eu-west-1 --function-name scraper_lambda --payload file://./scraper_example.json --profile terraform out.txt
 	cat out.txt
 
+invoke_scraper_api:
+	rm out.txt | true
+	aws lambda invoke --region eu-west-1 --function-name scraper_api_lambda --payload file://./api_example.json --profile terraform out.txt
+	cat out.txt
+
 plan:
 	terraform plan
 
