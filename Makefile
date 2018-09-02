@@ -6,7 +6,7 @@ package:
 	npm run package
 
 invoke_local:
-	cat example.json | serverless invoke local -f scraper
+	export AWS_PROFILE=terraform ; cat example.json | serverless invoke local -f scraper
 
 invoke:
 	rm out.txt | true

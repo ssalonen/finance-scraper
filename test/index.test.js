@@ -12,12 +12,14 @@ const { expect } = chai
 const nock = require('nock')
 const responses = require('./morningstar_responses')
 
+const {testSeligsonDynamoStubCalls} = require('./index.test.helpers')
+
 const BUCKET = 'dummy-bucket'
 const TABLE = 'dummy-table'
 
 describe('Tests', () => {
   let dynamoStub, s3Stub, sandbox
-  let index, processUrl, processAll
+  let index, processIsin, processAll
 
   before(() => {
     sandbox = sinon.createSandbox()
@@ -37,22 +39,26 @@ describe('Tests', () => {
     })
 
     index = require('../lib/index')
-    processUrl = index.processUrl
+    processIsin = index.processIsin
     processAll = index.processAll
   })
 
   beforeEach(() => {
     nock('http://www.morningstar.fi')
-      .get('/fi/etf/snapshot/snapshot.aspx?id=myetf')
+      .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000MEI0')
       .reply(200, responses.etf)
 
     nock('http://tools.morningstar.fi')
-      .get('/fi/stockreport/default.aspx?SecurityToken=myid')
+      .get('/fi/stockreport/default.aspx?SecurityToken=0P0000A5Z8]3]0]E0WWE$$ALL')
       .reply(200, responses.stock)
 
     nock('http://www.morningstar.fi')
-      .get('/fi/funds/snapshot/snapshot.aspx?id=myfund')
+      .get('/fi/funds/snapshot/snapshot.aspx?id=0P0000GGNP')
       .reply(200, responses.fund)
+
+    nock('http://www.seligson.fi')
+      .get('/graafit/rahamarkkina.csv')
+      .reply(200, responses.seligsonRahamarkkina)
   })
 
   afterEach(() => {
@@ -65,10 +71,10 @@ describe('Tests', () => {
   })
 
   it('etf parsed correctly', async () => {
-    const parsedData = await processUrl(
+    const parsedData = await processIsin(
       BUCKET,
       TABLE,
-      'http://www.morningstar.fi/fi/etf/snapshot/snapshot.aspx?id=myetf'
+      'IE00B4L5Y983'
     )
     expect(parsedData).to.deep.include({
       isin: 'IE00B4L5Y983',
@@ -79,10 +85,10 @@ describe('Tests', () => {
   })
 
   it('stock processed correctly', async () => {
-    const parsedData = await processUrl(
+    const parsedData = await processIsin(
       BUCKET,
       TABLE,
-      'http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid'
+      'FI0009013403'
     )
     expect(parsedData).to.deep.include({
       isin: 'FI0009013403',
@@ -94,7 +100,7 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
+        '2018-08-03T130456Z-d83e521012491f09a4245647a205250be5810f8c8e5124430c38442c192bcc63',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
@@ -116,10 +122,10 @@ describe('Tests', () => {
   })
 
   it('fund processed correctly', async () => {
-    const parsedData = await processUrl(
+    const parsedData = await processIsin(
       BUCKET,
       TABLE,
-      'http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund'
+      'NO0010140502'
     )
     expect(parsedData).to.deep.include({
       isin: 'NO0010140502',
@@ -131,7 +137,7 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
+        '2018-08-03T130456Z-92217a29e3094cfb0c6917c71ece2db778cb6730ccc7ebba04c611f1caaf355d',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
@@ -152,10 +158,41 @@ describe('Tests', () => {
     })
   })
 
-  it('fund+stock processAll', async () => {
+  it('seligson processed correctly', async () => {
+    const parsedData = await processIsin(
+      BUCKET,
+      TABLE,
+      'FI0008801733'
+    )
+    expect(parsedData).to.be.lengthOf(60)
+    // test first and last values
+    expect(parsedData).to.deep.include({
+      isin: 'FI0008801733',
+      name: 'Seligson & Co Rahamarkkinarahasto AAA A',
+      value: 2.5121,
+      valueDate: '2018-06-08T12:00:00Z'
+    })
+    expect(parsedData).to.deep.include({
+      isin: 'FI0008801733',
+      name: 'Seligson & Co Rahamarkkinarahasto AAA A',
+      value: 2.511,
+      valueDate: '2018-08-31T12:00:00Z'
+    })
+    expect(s3Stub).to.have.been.calledWith({
+      Body: responses.seligsonRahamarkkina.toString(),
+      Bucket: BUCKET,
+      Key:
+        '2018-08-03T130456Z-be33f13674660f18a77fddb6ae8d69697575d9b619db1670917e521b0f206735',
+      ServerSideEncryption: 'AES256' // ,
+      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
+    })
+    testSeligsonDynamoStubCalls(expect, dynamoStub)
+  })
+
+  it('stock+fund processAll', async () => {
     const actual = await processAll(BUCKET, TABLE, [
-      'http://tools.morningstar.fi/fi/stockreport/default.aspx?SecurityToken=myid',
-      'http://www.morningstar.fi/fi/funds/snapshot/snapshot.aspx?id=myfund'
+      'FI0009013403',
+      'NO0010140502'
     ])
     expect(actual)
       .to.be.an('array')
@@ -178,7 +215,7 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-accf18d4004219614ec6faa7b41ec404689e0a2a5999fdca0f9899a0967705d3',
+        '2018-08-03T130456Z-d83e521012491f09a4245647a205250be5810f8c8e5124430c38442c192bcc63',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
@@ -203,7 +240,7 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-9aa3ac4283686c368174e50daa34cd8cbb6b198662325962d4a38384aa2461d1',
+        '2018-08-03T130456Z-92217a29e3094cfb0c6917c71ece2db778cb6730ccc7ebba04c611f1caaf355d',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
