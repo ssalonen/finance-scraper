@@ -69,7 +69,9 @@ package:
 
 functions:
   scraper:
-    handler: lib/index.handler
+    handler: lib/scraper_index.handler
+  api:
+    handler: lib/api_index.handler
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

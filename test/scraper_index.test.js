@@ -12,7 +12,7 @@ const { expect } = chai
 const nock = require('nock')
 const responses = require('./morningstar_responses')
 
-const {testSeligsonDynamoStubCalls} = require('./index.test.helpers')
+const {testSeligsonDynamoStubCalls} = require('./scraper_index.test.helpers')
 
 const BUCKET = 'dummy-bucket'
 const TABLE = 'dummy-table'
@@ -38,7 +38,7 @@ describe('Tests', () => {
       promise: () => Promise.resolve(undefined)
     })
 
-    index = require('../lib/index')
+    index = require('../lib/scraper_index')
     processIsin = index.processIsin
     processAll = index.processAll
   })
