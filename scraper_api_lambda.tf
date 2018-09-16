@@ -70,3 +70,14 @@ resource "aws_iam_role_policy_attachment" "scraper-api-policy-attach" {
     policy_arn = "${aws_iam_policy.scraper_api_policy.arn}"
 }
 
+
+resource "aws_lambda_permission" "apigw" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.scraper_api_lambda.arn}"
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_deployment.finance_scraper_deployment.execution_arn}/*/*"
+}

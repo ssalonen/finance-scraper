@@ -57,3 +57,21 @@ resource "aws_api_gateway_deployment" "finance_scraper_deployment" {
   rest_api_id = "${aws_api_gateway_rest_api.finance_scraper_apigw.id}"
   stage_name  = "test"
 }
+
+
+resource "aws_api_gateway_method_settings" "s" {
+  rest_api_id = "${aws_api_gateway_rest_api.finance_scraper_apigw.id}"
+  stage_name  = "test"
+  method_path = "*/*"
+
+  settings {
+    metrics_enabled = true
+    logging_level   = "INFO"
+  }
+}
+
+
+output "base_url" {
+  value = "${aws_api_gateway_deployment.finance_scraper_deployment.invoke_url}"
+}
+
