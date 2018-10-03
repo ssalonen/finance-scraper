@@ -13,11 +13,32 @@ invoke_scraper:
 	rm out.txt | true
 	aws lambda invoke --region eu-west-1 --function-name scraper_lambda --payload file://./scraper_example.json --profile terraform out.txt
 	cat out.txt
+NODE_INVOKE_LOCAL_SCRAPER_SCRIPT=" \
+fs = require('fs'); \
+func = require('./lib/scraper_index'); \
+event = JSON.parse(fs.readFileSync('./scraper_example.json')); \
+func.handler(event).then(resp => { \
+	console.log('statusCode:' + resp.statusCode); \
+	console.log('response:\n' + JSON.stringify(resp.body, null, ' ')); \
+})"
+invoke_local_scraper:
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_SCRAPER_SCRIPT}
 
 invoke_scraper_api:
 	rm out.txt | true
 	aws lambda invoke --region eu-west-1 --function-name scraper_api_lambda --payload file://./api_example.json --profile terraform out.txt
 	cat out.txt
+
+NODE_INVOKE_LOCAL_API_SCRIPT=" \
+fs = require('fs'); \
+func = require('./lib/api_index'); \
+event = JSON.parse(fs.readFileSync('./api_example.json')); \
+func.handler(event).then(resp => { \
+	console.log('statusCode:' + resp.statusCode); \
+	console.log('response:\n' + JSON.stringify(resp.body, null, ' ')); \
+})"
+invoke_local_scraper_api:
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_API_SCRIPT}
 
 plan:
 	terraform plan
