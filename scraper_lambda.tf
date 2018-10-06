@@ -76,7 +76,7 @@ EOF
 
 resource "aws_cloudwatch_event_rule" "scrape_every_8_hours" {
   name = "scrape_every_8_hours"
-  schedule_expression = "rate(8 hour)"
+  schedule_expression = "rate(8 hours)"
   description = "Call finance scraper every 8 hours"
 }
 
