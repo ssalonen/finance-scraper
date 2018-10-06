@@ -87,8 +87,17 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target" {
   input = <<DOC
 {
   "isins": [
-    "FI0009013403",
-    "FI0008801733"
+    "LU0839027447",
+    "NO0010140502",
+    "SE0005991445",
+    "FI0008803812",
+    "IE00B52MJY50",
+    "IE00B4L5Y983",
+    "SE0005993102",
+    "FI0008800321",
+    "LU0274211480",
+    "LU0380865021",
+    "FI0009013403"
   ]
 }
 DOC
