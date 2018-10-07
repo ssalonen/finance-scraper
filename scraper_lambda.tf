@@ -81,7 +81,7 @@ resource "aws_cloudwatch_event_rule" "scrape_every_8_hours" {
 }
 
 
-resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target" {
+resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_8hours" {
   rule = "${aws_cloudwatch_event_rule.scrape_every_8_hours.name}"
   arn = "${aws_lambda_function.scraper_lambda.arn}"
   input = <<DOC
@@ -103,12 +103,43 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target" {
 DOC
 }
 
-resource "aws_lambda_permission" "allow_cloudwatch_to_execute_scraper" {
-  statement_id   = "AllowExecutionFromCloudWatch"
+
+
+resource "aws_cloudwatch_event_rule" "scrape_every_day" {
+  name = "scrape_every_day"
+  schedule_expression = "rate(1 day)"
+  description = "Call finance scraper every day"
+}
+
+
+resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_daily" {
+  rule = "${aws_cloudwatch_event_rule.scrape_every_day.name}"
+  arn = "${aws_lambda_function.scraper_lambda.arn}"
+  input = <<DOC
+{
+  "isins": [
+    "FI0008801980",
+    "FI0008801733",
+    "FI0008801790"
+  ]
+}
+DOC
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_execute_scraper_8hours" {
+  statement_id   = "AllowScraperExecutionFromCloudWatch8Hours"
   action         = "lambda:InvokeFunction"
   function_name  = "${aws_lambda_function.scraper_lambda.function_name}"
   principal      = "events.amazonaws.com"
   source_arn     = "${aws_cloudwatch_event_rule.scrape_every_8_hours.arn}"
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_execute_scraper_daily" {
+  statement_id   = "AllowScraperExecutionFromCloudWatchDaily"
+  action         = "lambda:InvokeFunction"
+  function_name  = "${aws_lambda_function.scraper_lambda.function_name}"
+  principal      = "events.amazonaws.com"
+  source_arn     = "${aws_cloudwatch_event_rule.scrape_every_day.arn}"
 }
 # TODO: Consider Cloudwatch events -> SQS queue -> scraper lambda
 # 404 and 500 would fail, and be retried!?
