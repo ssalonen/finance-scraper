@@ -56,6 +56,10 @@ describe('Tests', () => {
       .get('/fi/funds/snapshot/snapshot.aspx?id=0P0000GGNP')
       .reply(200, responses.fund)
 
+    nock('http://www.morningstar.fi')
+      .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000Y5NI')
+      .reply(200, responses.fund2)
+
     nock('http://www.seligson.fi')
       .get('/graafit/rahamarkkina.csv')
       .reply(200, responses.seligsonRahamarkkina)
@@ -100,7 +104,7 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-FI0009013403',
+        'FI0009013403-2018-08-03T130456Z',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
@@ -137,7 +141,7 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-NO0010140502',
+        'NO0010140502-2018-08-03T130456Z',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
@@ -150,6 +154,44 @@ describe('Tests', () => {
                 isin: { S: 'NO0010140502' },
                 value: { N: '86.82' },
                 valueDate: { S: '2018-07-25T12:00:00Z' }
+              }
+            }
+          }
+        ]
+      }
+    })
+  })
+
+  it('fund2 processed correctly (two overviewKeyStats tables)', async () => {
+    const parsedData = await processIsin(
+      BUCKET,
+      TABLE,
+      'LU0839027447'
+    )
+    console.log(parsedData)
+    expect(parsedData).to.deep.include({
+      isin: 'LU0839027447',
+      name: 'db x-trackers Nikkei 225 UCITS ETF (DR) 1D (EUR) XDJP (Frankfurt)',
+      value: 18.56,
+      valueDate: '2018-10-05T12:00:00Z'
+    })
+    expect(s3Stub).to.have.been.calledWith({
+      Body: responses.fund2.toString(),
+      Bucket: BUCKET,
+      Key:
+        'LU0839027447-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256' // ,
+      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
+    })
+    expect(dynamoStub).to.have.been.calledWith({
+      RequestItems: {
+        'dummy-table': [
+          {
+            PutRequest: {
+              Item: {
+                isin: { S: 'LU0839027447' },
+                value: { N: '18.56' },
+                valueDate: { S: '2018-10-05T12:00:00Z' }
               }
             }
           }
@@ -182,7 +224,7 @@ describe('Tests', () => {
       Body: responses.seligsonRahamarkkina.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-FI0008801733',
+        'FI0008801733-2018-08-03T130456Z',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
@@ -215,7 +257,7 @@ describe('Tests', () => {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-FI0009013403',
+        'FI0009013403-2018-08-03T130456Z',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
     })
@@ -240,7 +282,7 @@ describe('Tests', () => {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
       Key:
-        '2018-08-03T130456Z-NO0010140502',
+        'NO0010140502-2018-08-03T130456Z',
       ServerSideEncryption: 'AES256' // ,
       // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
     })
