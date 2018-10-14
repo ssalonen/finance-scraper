@@ -19,7 +19,7 @@ func = require('./lib/scraper_index'); \
 event = JSON.parse(fs.readFileSync('./scraper_example.json')); \
 func.handler(event).then(resp => { \
 	console.log('statusCode:' + resp.statusCode); \
-	console.log('response:\n' + JSON.stringify(resp.body, null, ' ')); \
+	console.log('response:\n' + JSON.stringify(JSON.parse(resp.body), null, ' ')); \
 })"
 invoke_local_scraper:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_SCRAPER_SCRIPT}
@@ -35,7 +35,7 @@ func = require('./lib/api_index'); \
 event = JSON.parse(fs.readFileSync('./api_example.json')); \
 func.handler(event).then(resp => { \
 	console.log('statusCode:' + resp.statusCode); \
-	console.log('response:\n' + JSON.stringify(resp.body, null, ' ')); \
+	console.log('response:\n' + JSON.stringify(JSON.parse(resp.body), null, ' ')); \
 })"
 invoke_local_scraper_api:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_API_SCRIPT}
