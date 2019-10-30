@@ -12,7 +12,7 @@ const { expect } = chai
 const nock = require('nock')
 const responses = require('./morningstar_responses')
 
-const {testSeligsonDynamoStubCalls} = require('./scraper_index.test.helpers')
+const { testSeligsonDynamoStubCalls } = require('./scraper_index.test.helpers')
 
 const BUCKET = 'dummy-bucket'
 const TABLE = 'dummy-table'
