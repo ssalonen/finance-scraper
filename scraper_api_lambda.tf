@@ -7,7 +7,7 @@ resource "aws_iam_role_policy_attachment" "scraper-policy-attach" {
 resource "aws_lambda_function" "scraper_api_lambda" {
   function_name    = "scraper_api_lambda"
   handler          = "lib/api_index.handler"
-  runtime          = "nodejs8.10"
+  runtime          = "nodejs10.x"
   filename         = ".serverless/finance_scraper.zip"
   source_code_hash = "${base64sha256(file(".serverless/finance_scraper.zip"))}"
   role             = "${aws_iam_role.scraper_api_role.arn}"
