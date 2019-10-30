@@ -90,6 +90,7 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_8hours" {
 {
   "isins": [
     "LU0839027447",
+<<<<<<< HEAD
     "NO0010140502",
     "SE0005991445",
     "FI0008803812",
@@ -100,6 +101,9 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_8hours" {
     "LU0274211480",
     "LU0380865021",
     "FI0009013403"
+=======
+    "IE00B52MJY50"
+>>>>>>> public
   ]
 }
 DOC
@@ -120,7 +124,10 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_daily" {
 {
   "isins": [
     "FI0008801980",
+<<<<<<< HEAD
     "FI0008801733",
+=======
+>>>>>>> public
     "FI0008801790"
   ]
 }

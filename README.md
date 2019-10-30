@@ -1,5 +1,9 @@
 # Finance Scraper
 
+Finance instrument scraper using Morningstar and Seligson data
+
+[![Build Status](https://www.travis-ci.org/ssalonen/finance-scraper.svg?branch=public)](https://www.travis-ci.org/ssalonen/finance-scraper)
+
 ## Prerequisites
 
 Tested with nodejs 12 and npm 6.10. Installation on Fedora 30 using Fedora modules:
@@ -42,6 +46,8 @@ terraform init
 ```
 
 Source: https://github.com/hashicorp/terraform/issues/19221#issuecomment-437964397
+
+
 
 ## License
 
