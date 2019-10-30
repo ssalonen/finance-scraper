@@ -1,7 +1,6 @@
-
 resource "aws_iam_role_policy_attachment" "scraper-policy-attach" {
-    role       = "${aws_iam_role.scraper_role.name}"
-    policy_arn = "${aws_iam_policy.scraper_policy.arn}"
+  role       = aws_iam_role.scraper_role.name
+  policy_arn = aws_iam_policy.scraper_policy.arn
 }
 
 resource "aws_lambda_function" "scraper_api_lambda" {
@@ -9,8 +8,8 @@ resource "aws_lambda_function" "scraper_api_lambda" {
   handler          = "lib/api_index.handler"
   runtime          = "nodejs10.x"
   filename         = ".serverless/finance_scraper.zip"
-  source_code_hash = "${base64sha256(file(".serverless/finance_scraper.zip"))}"
-  role             = "${aws_iam_role.scraper_api_role.arn}"
+  source_code_hash = filebase64sha256(".serverless/finance_scraper.zip")
+  role             = aws_iam_role.scraper_api_role.arn
   timeout          = "120"
 }
 
@@ -32,12 +31,14 @@ resource "aws_iam_role" "scraper_api_role" {
     ]
   }
 EOF
+
 }
 
 resource "aws_iam_policy" "scraper_api_policy" {
-    name        = "scraper_api_policy"
-    description = "Policy for the scraper API to access AWS services"
-    policy = <<EOF
+  name        = "scraper_api_policy"
+  description = "Policy for the scraper API to access AWS services"
+
+  policy = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -63,21 +64,22 @@ resource "aws_iam_policy" "scraper_api_policy" {
     ]
   }
 EOF
+
 }
 
 resource "aws_iam_role_policy_attachment" "scraper-api-policy-attach" {
-    role       = "${aws_iam_role.scraper_api_role.name}"
-    policy_arn = "${aws_iam_policy.scraper_api_policy.arn}"
+  role       = aws_iam_role.scraper_api_role.name
+  policy_arn = aws_iam_policy.scraper_api_policy.arn
 }
-
 
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.scraper_api_lambda.arn}"
+  function_name = aws_lambda_function.scraper_api_lambda.arn
   principal     = "apigateway.amazonaws.com"
 
   # The /*/* portion grants access from any method on any resource
   # within the API Gateway "REST API".
   source_arn = "${aws_api_gateway_deployment.finance_scraper_deployment.execution_arn}/*/*"
 }
+

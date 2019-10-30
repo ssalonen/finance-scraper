@@ -5,7 +5,7 @@ provider "aws" {
 
 resource "aws_s3_bucket" "scraper_bucket" {
   bucket = "finance-scraper-bucket"
-  acl = "private"
+  acl    = "private"
 }
 
 resource "aws_dynamodb_table" "finance_scraper" {
@@ -24,7 +24,6 @@ resource "aws_dynamodb_table" "finance_scraper" {
     name = "valueDate"
     type = "S"
   }
-
   /* Will be introduced by the application
   *  attribute {
   *   name = "value"
@@ -32,3 +31,4 @@ resource "aws_dynamodb_table" "finance_scraper" {
   *  }
   */
 }
+
