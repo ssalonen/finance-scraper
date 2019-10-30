@@ -1,5 +1,6 @@
+# Finance Scraper
 
-# Prerequisites
+## Prerequisites
 
 Tested with nodejs 12 and npm 6.10. Installation on Fedora 30 using Fedora modules:
 
@@ -8,8 +9,9 @@ Tested with nodejs 12 and npm 6.10. Installation on Fedora 30 using Fedora modul
 # dnf module install nodejs:12/development
 ```
 
+`aws` sdk can be installed with `dnf install aws`
 
-# Setup
+## Setup
 
 Terraform is used to provision resources in the cloud
 
@@ -24,7 +26,15 @@ Execute deployment
 make deploy
 ```
 
-# Packaging
+## Packaging
 
 Serverless is used for packaging the function as zip. `make package`. Resulting zip will be in `.serverless`
 
+## Updating terraform plugins
+
+```
+rm -rf .terraform/plugins
+terraform init
+```
+
+Source: https://github.com/hashicorp/terraform/issues/19221#issuecomment-437964397
