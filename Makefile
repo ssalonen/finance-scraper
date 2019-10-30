@@ -3,7 +3,7 @@
 .DEFAULT_GOAL := help
 
 package:
-	yarn install
+	npm install
 	npm run package
 
 # invoke_local:

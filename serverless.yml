@@ -58,10 +58,10 @@ package:
   exclude:
     - .terraform/**
     - main.tf
-    - '*.tfstate*'
+    - "*.tfstate*"
     - Makefile
     - package.json
-    - yarn.lock
+    - package-lock.json
     - README.md
     - .editorconfig
     - .eslintrc.js
@@ -72,7 +72,6 @@ functions:
     handler: lib/scraper_index.handler
   api:
     handler: lib/api_index.handler
-
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
