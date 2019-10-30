@@ -26,6 +26,10 @@ Execute deployment
 make deploy
 ```
 
+## Configuration
+
+Scraped instruments are configured in `scraper_lambda.tf` using their ISIN.
+
 ## Packaging
 
 Serverless is used for packaging the function as zip. `make package`. Resulting zip will be in `.serverless`
@@ -38,3 +42,7 @@ terraform init
 ```
 
 Source: https://github.com/hashicorp/terraform/issues/19221#issuecomment-437964397
+
+## License
+
+Licensed under MIT. See `LICENSE` text file.
