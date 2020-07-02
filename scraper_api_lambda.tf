@@ -11,6 +11,10 @@ resource "aws_lambda_function" "scraper_api_lambda" {
   source_code_hash = filebase64sha256(".serverless/finance_scraper.zip")
   role             = aws_iam_role.scraper_api_role.arn
   timeout          = "120"
+  // X-Ray
+  tracing_config {
+    mode = "Active"
+  }
 }
 
 resource "aws_iam_role" "scraper_api_role" {
@@ -60,7 +64,7 @@ resource "aws_iam_policy" "scraper_api_policy" {
       "Resource": "arn:aws:logs:*:*:*",
       "Effect": "Allow",
       "Sid": "AllowLogToCloudWatch"
-    }
+      }
     ]
   }
 EOF
@@ -70,6 +74,11 @@ EOF
 resource "aws_iam_role_policy_attachment" "scraper-api-policy-attach" {
   role       = aws_iam_role.scraper_api_role.name
   policy_arn = aws_iam_policy.scraper_api_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "scraper-api-allow-aws_xray_write_only_access" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
 }
 
 resource "aws_lambda_permission" "apigw" {
