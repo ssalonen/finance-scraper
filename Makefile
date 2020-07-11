@@ -41,10 +41,10 @@ invoke_local_scraper_api:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_API_SCRIPT}
 
 plan:
-	terraform plan
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform terraform plan
 
 deploy:
-	terraform apply
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform terraform apply
 
 test:
 	npm run test

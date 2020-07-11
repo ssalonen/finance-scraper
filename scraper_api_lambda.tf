@@ -77,7 +77,7 @@ resource "aws_iam_role_policy_attachment" "scraper-api-policy-attach" {
 }
 
 resource "aws_iam_role_policy_attachment" "scraper-api-allow-aws_xray_write_only_access" {
-  role       = aws_iam_role.lambda.name
+  role       = aws_iam_role.scraper_api_role.name
   policy_arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
 }
 

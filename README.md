@@ -30,6 +30,12 @@ Execute deployment
 make deploy
 ```
 
+## Terraform State Management
+
+We use terraform [remote state management](https://www.terraform.io/docs/state/remote.html) using AWS S3 and DynamoDB.
+
+For proviosining necessary buckets and tables for the remote storage, see `remote_state_storage.tf` (one-time initialization).
+
 ## Configuration
 
 Scraped instruments are configured in `scraper_lambda.tf` using their ISIN.
