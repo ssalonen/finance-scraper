@@ -1,7 +1,7 @@
 resource "aws_lambda_function" "scraper_lambda" {
   function_name    = "scraper_lambda"
   handler          = "lib/scraper_index.handler"
-  runtime          = "nodejs10.x"
+  runtime          = "nodejs12.x"
   filename         = ".serverless/finance_scraper.zip"
   source_code_hash = filebase64sha256(".serverless/finance_scraper.zip")
   role             = aws_iam_role.scraper_role.arn
