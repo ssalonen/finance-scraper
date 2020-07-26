@@ -100,7 +100,8 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_8hours" {
     "LU0274211480",
     "LU0380865021",
     "FI0009013403",
-    "SE0002756973"
+    "SE0002756973",
+    "IE00B5BMR087"
   ]
 }
 DOC

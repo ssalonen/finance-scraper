@@ -54,6 +54,10 @@ terraform init
 Source: https://github.com/hashicorp/terraform/issues/19221#issuecomment-437964397
 
 
+## Adding new instrument for scraping
+
+- add entry to `ISIN_TO_PARSER_AND_URL_AND_NAME` in `parsers.js`
+- add parsing with the suitable interval in `scraper_lambda.tf`
 
 ## License
 
