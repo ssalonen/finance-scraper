@@ -1,15 +1,11 @@
 const fs = require('fs')
 const path = require('path')
-const etfFilePath = path.join(__dirname, 'morningstar_etf.html')
-const stockFilePath = path.join(__dirname, 'morningstar_stock.html')
-const fundFilePath = path.join(__dirname, 'morningstar_fund.html')
-const fundFile2Path = path.join(__dirname, 'morningstar_fund2.html')
-const seligsonFilePath = path.join(__dirname, 'rahamarkkina.csv')
 
 module.exports = {
-  etf: fs.readFileSync(etfFilePath),
-  stock: fs.readFileSync(stockFilePath),
-  fund: fs.readFileSync(fundFilePath),
-  fund2: fs.readFileSync(fundFile2Path),
-  seligsonRahamarkkina: fs.readFileSync(seligsonFilePath)
+  etf: fs.readFileSync(path.join(__dirname, 'morningstar_etf.html')),
+  etf2: fs.readFileSync(path.join(__dirname, 'morningstar_etf2.html')),
+  stock: fs.readFileSync(path.join(__dirname, 'morningstar_stock.html')),
+  fund: fs.readFileSync(path.join(__dirname, 'morningstar_fund.html')),
+  fund2: fs.readFileSync(path.join(__dirname, 'morningstar_fund2.html')),
+  seligsonRahamarkkina: fs.readFileSync(path.join(__dirname, 'rahamarkkina.csv'))
 }

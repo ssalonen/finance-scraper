@@ -48,6 +48,10 @@ describe('Tests', () => {
       .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000MEI0')
       .reply(200, responses.etf)
 
+    nock('http://www.morningstar.fi')
+      .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000HNXD')
+      .reply(200, responses.etf2)
+
     nock('http://tools.morningstar.fi')
       .get('/fi/stockreport/default.aspx?SecurityToken=0P0000A5Z8]3]0]E0WWE$$ALL')
       .reply(200, responses.stock)
@@ -85,6 +89,20 @@ describe('Tests', () => {
       name: 'iShares Core MSCI World UCITS ETF',
       value: 47.84,
       valueDate: '2018-07-24T12:00:00Z'
+    })
+  })
+
+  it('etf2 parsed correctly (both Lopetushinta & Osuuden arvo, should pick most recent)', async () => {
+    const parsedData = await processIsin(
+      BUCKET,
+      TABLE,
+      'LU0380865021'
+    )
+    expect(parsedData).to.deep.include({
+      isin: 'LU0380865021',
+      name: 'db x-trackers Euro Stoxx 50 UCITS ETF (DR) 1C (EUR) DXET',
+      value: 49.85,
+      valueDate: '2020-08-14T12:00:00Z'
     })
   })
 
