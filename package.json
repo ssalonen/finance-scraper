@@ -6,7 +6,8 @@
   "scripts": {
     "package": "serverless package",
     "test": "standard && mocha",
-    "test-w": "standard && mocha -w"
+    "test-w": "standard && mocha -w",
+    "reprocess": "node scripts/rerunner.js"
   },
   "author": "Sami Salonen",
   "license": "",

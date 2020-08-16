@@ -52,6 +52,9 @@ test:
 test-watch:
 	npm run test-w
 
+reprocess:
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform npm run reprocess
+
 clean:
 	rm -rf build
 
