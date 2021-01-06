@@ -27,7 +27,7 @@ invoke_local_scraper:
 invoke_scraper_api:
 	rm out.txt | true
 	aws lambda invoke --region eu-west-1 --function-name scraper_api_lambda --payload file://./api_example.json --profile terraform out.txt
-	cat out.txt
+	cat out.txt|python3 -mjson.tool
 
 NODE_INVOKE_LOCAL_API_SCRIPT=" \
 fs = require('fs'); \
@@ -41,16 +41,19 @@ invoke_local_scraper_api:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_API_SCRIPT}
 
 plan:
-	terraform plan
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform terraform plan
 
 deploy:
-	terraform apply
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform terraform apply
 
 test:
 	npm run test
 
 test-watch:
 	npm run test-w
+
+reprocess:
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform npm run reprocess
 
 clean:
 	rm -rf build

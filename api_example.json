@@ -5,8 +5,9 @@
       "FI0008801733"
     ]
   },
+  "requireAllEntries": false,
   "queryStringParameters": {
-    "begin": "2018-08-27",
-    "end": "2018-09-04" 
+    "begin": "2020-08-01",
+    "end": "2020-08-30"
   }
 }
