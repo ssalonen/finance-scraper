@@ -13,24 +13,24 @@
   "license": "",
   "devDependencies": {
     "chai": "^4.2.0",
-    "eslint": "^7.7.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.22.0",
+    "eslint": "^7.17.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "mocha": "^8.1.1",
-    "nock": "^13.0.4",
-    "serverless": "^1.78.1",
-    "sinon": "^9.0.3",
+    "mocha": "^8.2.1",
+    "nock": "^13.0.5",
+    "serverless": "^2.17.0",
+    "sinon": "^9.2.2",
     "sinon-chai": "^3.5.0",
-    "standard": "^14.3.4"
+    "standard": "^16.0.3"
   },
   "dependencies": {
-    "aws-sdk": "^2.734.0",
-    "cheerio": "^1.0.0-rc.3",
-    "csv-parser": "^2.3.3",
-    "moment-timezone": "^0.5.31",
-    "node-fetch": "^2.6.0"
+    "aws-sdk": "^2.822.0",
+    "cheerio": "^1.0.0-rc.5",
+    "csv-parser": "^3.0.0",
+    "moment-timezone": "^0.5.32",
+    "node-fetch": "^2.6.1",
+    "npm-check-updates": "^10.2.5"
   }
 }
