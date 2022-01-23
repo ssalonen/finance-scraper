@@ -6,9 +6,9 @@ resource "aws_iam_role_policy_attachment" "scraper-policy-attach" {
 resource "aws_lambda_function" "scraper_api_lambda" {
   function_name    = "scraper_api_lambda"
   handler          = "lib/api_index.handler"
-  runtime          = "nodejs12.x"
-  filename         = ".serverless/finance_scraper.zip"
-  source_code_hash = filebase64sha256(".serverless/finance_scraper.zip")
+  runtime          = "nodejs14.x"
+  filename         = "build/finance_scraper.zip"
+  source_code_hash = filebase64sha256("build/finance_scraper.zip")
   role             = aws_iam_role.scraper_api_role.arn
   timeout          = "120"
   // X-Ray

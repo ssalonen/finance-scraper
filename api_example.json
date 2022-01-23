@@ -7,7 +7,7 @@
   },
   "requireAllEntries": false,
   "queryStringParameters": {
-    "begin": "2020-08-01",
-    "end": "2020-08-30"
+    "begin": "2021-12-01",
+    "end": "2022-01-23"
   }
 }

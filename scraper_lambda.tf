@@ -1,9 +1,9 @@
 resource "aws_lambda_function" "scraper_lambda" {
   function_name    = "scraper_lambda"
   handler          = "lib/scraper_index.handler"
-  runtime          = "nodejs12.x"
-  filename         = ".serverless/finance_scraper.zip"
-  source_code_hash = filebase64sha256(".serverless/finance_scraper.zip")
+  runtime          = "nodejs14.x"
+  filename         = "build/finance_scraper.zip"
+  source_code_hash = filebase64sha256("build/finance_scraper.zip")
   role             = aws_iam_role.scraper_role.arn
   timeout          = "120"
 }

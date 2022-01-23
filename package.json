@@ -2,9 +2,8 @@
   "name": "finance-scraper",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.js",
   "scripts": {
-    "package": "serverless package",
+    "package": "[[ -f build/finance_scraper.zip ]] && rm build/finance_scraper.zip ; /bin/cp -r {package.json,package-lock.json,lib,.nvmrc} build/ && npm install --prefix ./build/ --only=production && cd build && zip -r finance_scraper.zip . -i 'lib/*' -i 'node_modules/*' -i package.json -i /LICENSE -i .nvmrc",
     "test": "standard && mocha",
     "test-w": "standard && mocha -w",
     "reprocess": "node scripts/rerunner.js"
@@ -12,25 +11,24 @@
   "author": "Sami Salonen",
   "license": "",
   "devDependencies": {
-    "chai": "^4.2.0",
-    "eslint": "^7.17.0",
-    "eslint-config-standard": "^16.0.2",
-    "eslint-plugin-import": "^2.22.1",
+    "chai": "^4.3.4",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "mocha": "^8.2.1",
-    "nock": "^13.0.5",
-    "serverless": "^2.17.0",
-    "sinon": "^9.2.2",
-    "sinon-chai": "^3.5.0",
-    "standard": "^16.0.3"
+    "eslint-plugin-promise": "^5.1.0",
+    "mocha": "^9.1.4",
+    "nock": "^13.2.2",
+    "sinon": "^12.0.1",
+    "sinon-chai": "^3.7.0",
+    "standard": "^16.0.4"
   },
   "dependencies": {
-    "aws-sdk": "^2.822.0",
-    "cheerio": "^1.0.0-rc.5",
+    "aws-sdk": "^2.1062.0",
+    "cheerio": "^1.0.0-rc.10",
     "csv-parser": "^3.0.0",
-    "moment-timezone": "^0.5.32",
-    "node-fetch": "^2.6.1",
-    "npm-check-updates": "^10.2.5"
+    "moment-timezone": "^0.5.34",
+    "node-fetch": "^3.2.0",
+    "npm-check-updates": "^12.2.1"
   }
 }

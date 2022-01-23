@@ -1,9 +1,8 @@
 
-.PHONY: package invoke_scraper plan deploy test test-watch clean help
+.PHONY: clean package invoke_scraper plan deploy test test-watch clean help
 .DEFAULT_GOAL := help
 
 package:
-	npm install
 	npm run package
 
 # invoke_local:
@@ -24,10 +23,11 @@ func.handler(event).then(resp => { \
 invoke_local_scraper:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_SCRAPER_SCRIPT}
 
-invoke_scraper_api:
+invoke_history_api:
 	rm out.txt | true
 	aws lambda invoke --region eu-west-1 --function-name scraper_api_lambda --payload file://./api_example.json --profile terraform out.txt
-	cat out.txt|python3 -mjson.tool
+	cat out.txt|jq .statusCode
+	cat out.txt|jq  --sort-keys ' .body|fromjson '
 
 NODE_INVOKE_LOCAL_API_SCRIPT=" \
 fs = require('fs'); \
@@ -37,7 +37,7 @@ func.handler(event).then(resp => { \
 	console.log('statusCode:' + resp.statusCode); \
 	console.log('response:\n' + JSON.stringify(JSON.parse(resp.body), null, ' ')); \
 })"
-invoke_local_scraper_api:
+invoke_local_history_api:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_API_SCRIPT}
 
 plan:
@@ -57,6 +57,7 @@ reprocess:
 
 clean:
 	rm -rf build
+	mkdir build
 
 help:
 	@echo "Suitable make targets:"
