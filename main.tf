@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
-    encrypt = true
-    bucket = "mybucket-finance-scraper-terraform-remote-state-storage-s3"
+    encrypt        = true
+    bucket         = "YOUR-BUCKET-NAME-finance-scraper-terraform-remote-state-storage-s3"  # REPLACE WITH YOUR ACTUAL BUCKET NAME
     dynamodb_table = "terraform-state-lock-dynamo"
-    region = "eu-west-1"
-    key = "terraform-finance-scraper-state"
+    region         = "eu-west-1"
+    key            = "terraform-finance-scraper-state"
   }
 }
 
@@ -14,7 +14,11 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "scraper_bucket" {
-  bucket = "finance-scraper-bucket"
+  bucket = "YOUR-UNIQUE-BUCKET-NAME-finance-scraper"  # REPLACE WITH YOUR ACTUAL BUCKET NAME (must be globally unique)
+}
+
+resource "aws_s3_bucket_acl" "scraper_s3_bucket_acl" {
+  bucket = aws_s3_bucket.scraper_bucket.id
   acl    = "private"
 }
 

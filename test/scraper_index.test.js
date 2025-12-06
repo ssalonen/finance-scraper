@@ -1,81 +1,90 @@
 /* eslint-env node, mocha */
-
-const sinon = require('sinon')
-const chai = require('chai')
-chai.use(require('sinon-chai'))
+import { processIsin, processAll } from '../lib/scraper_index.js'
+import sinon from 'sinon'
+import { use as chaiUse, expect } from 'chai'
+import sinonChai from 'sinon-chai'
+import { Agent, MockAgent, setGlobalDispatcher } from 'undici'
 
 // AWS services to be mocked. Imported before main code
-const dynamodb = require('../lib/dynamodb-service')
-const s3 = require('../lib/s3-service')
+import { client as dynamodbClient, BatchWriteItemCommand } from '../lib/dynamodb-service.js'
+import { client as s3Client, PutObjectCommand } from '../lib/s3-service.js'
 
-const { expect } = chai
-const nock = require('nock')
-const responses = require('./morningstar_responses')
-
-const { testSeligsonDynamoStubCalls } = require('./scraper_index.test.helpers')
+import { responses } from './morningstar_responses.js'
+import testSeligsonDynamoStubCalls from './scraper_index.test.helpers.js'
+chaiUse(sinonChai)
 
 const BUCKET = 'dummy-bucket'
 const TABLE = 'dummy-table'
+const mockAgent = new MockAgent()
 
 describe('Tests', () => {
-  let dynamoStub, s3Stub, sandbox
-  let index, processIsin, processAll
+  let dynamoStub, s3Stub, sandbox, clock
 
-  before(() => {
+  before(async () => {
     sandbox = sinon.createSandbox()
 
-    dynamoStub = sandbox.stub(dynamodb, 'batchWriteItem')
-    s3Stub = sandbox.stub(s3, 'putObject')
+    dynamoStub = sandbox.stub(dynamodbClient, 'send')
+    s3Stub = sandbox.stub(s3Client, 'send')
 
     // 2018-08-03 13:04:56
-    sandbox.useFakeTimers(1533301496000)
-
-    dynamoStub.returns({
-      promise: () => Promise.resolve(undefined)
+    clock = sinon.useFakeTimers({
+      now: 1533301496000,
+      toFake: ['Date'],
+      shouldAdvanceTime: false
     })
 
-    s3Stub.returns({
-      promise: () => Promise.resolve(undefined)
-    })
+    dynamoStub.returns(Promise.resolve(undefined))
 
-    index = require('../lib/scraper_index')
-    processIsin = index.processIsin
-    processAll = index.processAll
+    s3Stub.returns(Promise.resolve(undefined))
+
+    setGlobalDispatcher(mockAgent)
+    mockAgent.disableNetConnect()
   })
 
   beforeEach(() => {
-    nock('http://www.morningstar.fi')
-      .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000MEI0')
+    const morningstarFiMocks = mockAgent.get('http://www.morningstar.fi')
+    const morningstarHttpToolsMocks = mockAgent.get('http://tools.morningstar.fi')
+    const morningstarHttpsToolsMocks = mockAgent.get('https://tools.morningstar.fi')
+    const seligsonFiMocks = mockAgent.get('http://www.seligson.fi')
+
+    morningstarFiMocks
+      .intercept({ path: '/fi/etf/snapshot/snapshot.aspx?id=0P0000MEI0' })
       .reply(200, responses.etf)
 
-    nock('http://www.morningstar.fi')
-      .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000HNXD')
+    morningstarFiMocks
+      .intercept({ path: '/fi/etf/snapshot/snapshot.aspx?id=0P0000HNXD' })
       .reply(200, responses.etf2)
 
-    nock('http://tools.morningstar.fi')
-      .get('/fi/stockreport/default.aspx?SecurityToken=0P0000A5Z8]3]0]E0WWE$$ALL')
+    morningstarHttpToolsMocks
+      .intercept({ path: '/fi/stockreport/default.aspx?SecurityToken=0P0000A5Z8]3]0]E0WWE$$ALL' })
       .reply(200, responses.stock)
 
-    nock('http://www.morningstar.fi')
-      .get('/fi/funds/snapshot/snapshot.aspx?id=0P0000GGNP')
+    morningstarHttpsToolsMocks
+      .intercept({ path: '/fi/stockreport/default.aspx?Site=fi&id=0P0001NP95&LanguageId=fi-FI&SecurityToken=0P0001NP95]3]0]E0WWE%24%24ALL' })
+      .reply(200, responses.stock2)
+
+    morningstarFiMocks
+      .intercept({ path: '/fi/funds/snapshot/snapshot.aspx?id=0P0000GGNP' })
       .reply(200, responses.fund)
 
-    nock('http://www.morningstar.fi')
-      .get('/fi/etf/snapshot/snapshot.aspx?id=0P0000Y5NI')
+    morningstarFiMocks
+      .intercept({ path: '/fi/etf/snapshot/snapshot.aspx?id=0P0000Y5NI' })
       .reply(200, responses.fund2)
 
-    nock('http://www.seligson.fi')
-      .get('/graafit/rahamarkkina.csv')
+    seligsonFiMocks
+      .intercept({ path: '/graafit/rahamarkkina.csv' })
       .reply(200, responses.seligsonRahamarkkina)
   })
 
   afterEach(() => {
     sandbox.resetHistory()
-    nock.cleanAll()
   })
 
-  after(() => {
+  after(async () => {
     sandbox.restore()
+    clock.restore()
+    await mockAgent.close()
+    setGlobalDispatcher(new Agent())
   })
 
   it('etf parsed correctly', async () => {
@@ -118,15 +127,13 @@ describe('Tests', () => {
       value: 48.01,
       valueDate: '2018-07-26T14:30:29Z'
     })
-    expect(s3Stub).to.have.been.calledWith({
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
-      Key:
-        'FI0009013403-2018-08-03T130456Z',
-      ServerSideEncryption: 'AES256' // ,
-      // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
-    })
-    expect(dynamoStub).to.have.been.calledWith({
+      Key: 'FI0009013403-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
+    expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
       RequestItems: {
         'dummy-table': [
           {
@@ -140,7 +147,43 @@ describe('Tests', () => {
           }
         ]
       }
+    })))
+  })
+
+  it('stock2 (EDT timezone) processed correctly', async () => {
+    const parsedData = await processIsin(
+      BUCKET,
+      TABLE,
+      'US76954A1034'
+    )
+
+    expect(parsedData).to.deep.include({
+      isin: 'US76954A1034',
+      name: 'Rivian Automotive Inc',
+      value: 46.44,
+      valueDate: '2022-04-01T23:59:59Z' // HTML has 2022-04-01T19:59:59 EDT ==> 2022-04-01T23:59:59Z (since EDT = UTC-4)
     })
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
+      Body: responses.stock2.toString(),
+      Bucket: BUCKET,
+      Key: 'US76954A1034-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
+    expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
+      RequestItems: {
+        'dummy-table': [
+          {
+            PutRequest: {
+              Item: {
+                isin: { S: 'US76954A1034' },
+                value: { N: '46.44' },
+                valueDate: { S: '2022-04-01T23:59:59Z' }
+              }
+            }
+          }
+        ]
+      }
+    })))
   })
 
   it('fund processed correctly', async () => {
@@ -155,15 +198,13 @@ describe('Tests', () => {
       value: 86.82,
       valueDate: '2018-07-25T12:00:00Z'
     })
-    expect(s3Stub).to.have.been.calledWith({
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
-      Key:
-        'NO0010140502-2018-08-03T130456Z',
-      ServerSideEncryption: 'AES256' // ,
-      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
-    })
-    expect(dynamoStub).to.have.been.calledWith({
+      Key: 'NO0010140502-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
+    expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
       RequestItems: {
         'dummy-table': [
           {
@@ -177,7 +218,7 @@ describe('Tests', () => {
           }
         ]
       }
-    })
+    })))
   })
 
   it('fund2 processed correctly (two overviewKeyStats tables)', async () => {
@@ -193,15 +234,13 @@ describe('Tests', () => {
       value: 18.56,
       valueDate: '2018-10-05T12:00:00Z'
     })
-    expect(s3Stub).to.have.been.calledWith({
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
       Body: responses.fund2.toString(),
       Bucket: BUCKET,
-      Key:
-        'LU0839027447-2018-08-03T130456Z',
-      ServerSideEncryption: 'AES256' // ,
-      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
-    })
-    expect(dynamoStub).to.have.been.calledWith({
+      Key: 'LU0839027447-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
+    expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
       RequestItems: {
         'dummy-table': [
           {
@@ -215,7 +254,7 @@ describe('Tests', () => {
           }
         ]
       }
-    })
+    })))
   })
 
   it('seligson processed correctly', async () => {
@@ -238,14 +277,12 @@ describe('Tests', () => {
       value: 2.511,
       valueDate: '2018-08-31T12:00:00Z'
     })
-    expect(s3Stub).to.have.been.calledWith({
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
       Body: responses.seligsonRahamarkkina.toString(),
       Bucket: BUCKET,
-      Key:
-        'FI0008801733-2018-08-03T130456Z',
-      ServerSideEncryption: 'AES256' // ,
-      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
-    })
+      Key: 'FI0008801733-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
     testSeligsonDynamoStubCalls(expect, dynamoStub)
   })
 
@@ -271,15 +308,13 @@ describe('Tests', () => {
     })
 
     // stock
-    expect(s3Stub).to.have.been.calledWith({
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
       Body: responses.stock.toString(),
       Bucket: BUCKET,
-      Key:
-        'FI0009013403-2018-08-03T130456Z',
-      ServerSideEncryption: 'AES256' // ,
-      // Tagging: 'url=http%3A%2F%2Ftools.morningstar.fi%2Ffi%2Fstockreport%2Fdefault.aspx%3FSecurityToken%3Dmyid'
-    })
-    expect(dynamoStub).to.have.been.calledWith({
+      Key: 'FI0009013403-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
+    expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
       RequestItems: {
         'dummy-table': [
           {
@@ -293,18 +328,16 @@ describe('Tests', () => {
           }
         ]
       }
-    })
+    })))
 
     // fund
-    expect(s3Stub).to.have.been.calledWith({
+    expect(s3Stub).to.have.been.calledWith(sinon.match.instanceOf(PutObjectCommand).and(sinon.match.has('input', {
       Body: responses.fund.toString(),
       Bucket: BUCKET,
-      Key:
-        'NO0010140502-2018-08-03T130456Z',
-      ServerSideEncryption: 'AES256' // ,
-      // Tagging: 'url=http%3A%2F%2Fwww.morningstar.fi%2Ffi%2Ffunds%2Fsnapshot%2Fsnapshot.aspx%3Fid%3Dmyfund'
-    })
-    expect(dynamoStub).to.have.been.calledWith({
+      Key: 'NO0010140502-2018-08-03T130456Z',
+      ServerSideEncryption: 'AES256'
+    })))
+    expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
       RequestItems: {
         'dummy-table': [
           {
@@ -318,6 +351,6 @@ describe('Tests', () => {
           }
         ]
       }
-    })
+    })))
   })
 })

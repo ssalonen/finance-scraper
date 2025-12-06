@@ -1,6 +1,9 @@
+import sinon from 'sinon'
+import { BatchWriteItemCommand } from '../lib/dynamodb-service.js'
+
 function testSeligsonDynamoStubCalls (expect, dynamoStub) {
   // Call 1
-  expect(dynamoStub).to.have.been.calledWith({
+  expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
     RequestItems: {
       'dummy-table': [{
         PutRequest: {
@@ -204,9 +207,9 @@ function testSeligsonDynamoStubCalls (expect, dynamoStub) {
         }
       }]
     }
-  })
+  })))
   // Call 2:
-  expect(dynamoStub).to.have.been.calledWith({
+  expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
     RequestItems: {
       'dummy-table': [{
         PutRequest: {
@@ -410,9 +413,9 @@ function testSeligsonDynamoStubCalls (expect, dynamoStub) {
         }
       }]
     }
-  })
+  })))
   // Call 3
-  expect(dynamoStub).to.have.been.calledWith({
+  expect(dynamoStub).to.have.been.calledWith(sinon.match.instanceOf(BatchWriteItemCommand).and(sinon.match.has('input', {
     RequestItems: {
       'dummy-table': [{
         PutRequest: {
@@ -496,7 +499,7 @@ function testSeligsonDynamoStubCalls (expect, dynamoStub) {
         }
       }]
     }
-  })
+  })))
 }
 
-exports.testSeligsonDynamoStubCalls = testSeligsonDynamoStubCalls
+export default testSeligsonDynamoStubCalls

@@ -2,20 +2,27 @@
 
 Finance instrument scraper using Morningstar and Seligson data
 
-[![Build Status](https://www.travis-ci.org/ssalonen/finance-scraper.svg?branch=public)](https://www.travis-ci.org/ssalonen/finance-scraper)
+## Development
 
-## Prerequisites
+### Initial setup
 
-Tested with nodejs 12 and npm 6.10. Installation on Fedora 30 using Fedora modules:
+The project uses `.nvmrc` to specify the NodeJS version used. For convenience, dev dependency `n` is used to manage node versions:
 
-```bash
-# dnf module enable nodejs:12
-# dnf module install nodejs:12/development
+```
+sudo npm exec n install 22 # install NodeJS runtime v22
 ```
 
-`aws` sdk can be installed with `dnf install aws`
+Tested with NodeJS runtime v22.
 
-## Setup
+
+### Running tests
+
+```bash
+make test
+```
+
+
+### Terraform operations
 
 Terraform is used to provision resources in the cloud
 
@@ -37,46 +44,70 @@ Execute deployment
 make deploy
 ```
 
-## Terraform State Management
-
-We use terraform [remote state management](https://www.terraform.io/docs/state/remote.html) using AWS S3 and DynamoDB.
-
-For proviosining necessary buckets and tables for the remote storage, see `remote_state_storage.tf` (one-time initialization).
-
-## Configuration
-
-Scraped instruments are configured in `scraper_lambda.tf` using their ISIN.
-
-## Packaging
+#### Packaging
 
 `make package` will package the project. Resulting zip will be in `build`
 
-## Updating terraform plugins
+## Overview
+
+### Terraform State Management
+
+We use terraform [remote state management](https://www.terraform.io/docs/state/remote.html) using AWS S3 and DynamoDB.
+
+For provisioning necessary buckets and tables for the remote storage, see `remote_state_storage.tf` (one-time initialization).
+
+## Maintenance activities
+
+### Updating terraform plugins
 
 ```bash
-rm -rf .terraform/plugins
-terraform init
+rm -rf .terraform/{plugins,providers}
+AWS_PROFILE=terraform terraform init -upgrade
 ```
 
-Source: <https://github.com/hashicorp/terraform/issues/19221#issuecomment-437964397>
+Source: <https://github.com/hashicorp/terraform/issues/19221#issuecomment-437964397> and <https://developer.hashicorp.com/terraform/tutorials/configuration-language/provider-versioning>
 
-## Updating nodejs runtime
+### Updating nodejs runtime
 
 Update version number in terraform definitions
 
 ```bash
 # find places to edit
-rg runtime -g '*.tf'  
+rg runtime -g '*.tf' -g 'README.md' 
 ```
 
 Update also `.nvmrc` file with a node version, many IDEs and tools pick this up.
+Similarly for `.gitlab-ci.yml`.
 
-## Adding new instrument for scraping
+Note that terraform might not recognize the NodeJS runtime without updating the aws terraform provider (see above).
+
+### Updating node dependencies
+
+`npm-check-updates` or `ncu` for short, updates all dependencies to latest major version.
+
+`ncu` is installed with
+
+```
+npm install npm-check-updates
+```
+
+To upgrade all dependencies:
+
+```
+./node_modules/.bin/ncu -u  # updates package.json
+npm install  # install new versions
+```
+
+### Adding new instrument for scraping
+
+Scraped instruments are configured in `scraper_lambda.tf` using their ISIN.
 
 - add entry to `ISIN_TO_PARSER_AND_URL_AND_NAME` in `parsers.js`
 - add parsing with the suitable interval in `scraper_lambda.tf`
 
-## Reprocessing historical data
+## Runbook
+
+### Reprocessing historical data
 
 In case of live parsing errors, one can run the reprocessing using the stored html data.
 

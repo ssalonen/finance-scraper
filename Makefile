@@ -10,7 +10,7 @@ package:
 
 invoke_scraper:
 	rm out.txt | true
-	aws lambda invoke --region eu-west-1 --function-name scraper_lambda --payload file://./scraper_example.json --profile terraform out.txt
+	aws lambda invoke --region eu-west-1 --function-name scraper_lambda --cli-binary-format raw-in-base64-out --payload file://./scraper_example.json --profile terraform out.txt
 	cat out.txt
 NODE_INVOKE_LOCAL_SCRAPER_SCRIPT=" \
 fs = require('fs'); \
@@ -24,10 +24,15 @@ invoke_local_scraper:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_SCRAPER_SCRIPT}
 
 invoke_history_api:
-	rm out.txt | true
-	aws lambda invoke --region eu-west-1 --function-name scraper_api_lambda --payload file://./api_example.json --profile terraform out.txt
+	[ -f out.txt ] && rm out.txt || true
+	aws lambda invoke --region eu-west-1 --function-name scraper_api_lambda --cli-binary-format raw-in-base64-out --payload file://./api_example.json --profile terraform out.txt
 	cat out.txt|jq .statusCode
 	cat out.txt|jq  --sort-keys ' .body|fromjson '
+
+invoke_history_api_local_curl:
+	# To test the deployed API, replace API_ENDPOINT with your actual API Gateway URL
+	# API_ENDPOINT=$$(AWS_REGION=eu-west-1 AWS_PROFILE=terraform aws api-gateway get-rest-apis --query 'items[?name==`FinanceScraperAPIGateway`].id' --output text); \
+	# curl -vX POST "https://$${API_ENDPOINT}.execute-api.eu-west-1.amazonaws.com/test/?begin=2024-01-01&end=2024-01-31&requireAllEntries=false&isins=FI0009013403&isins=FI0008801733" --header "Content-Type: application/json"
 
 NODE_INVOKE_LOCAL_API_SCRIPT=" \
 fs = require('fs'); \
@@ -41,10 +46,10 @@ invoke_local_history_api:
 	AWS_REGION=eu-west-1 AWS_PROFILE=terraform node -e ${NODE_INVOKE_LOCAL_API_SCRIPT}
 
 plan:
-	AWS_REGION=eu-west-1 AWS_PROFILE=terraform terraform plan
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform tofu plan
 
 deploy:
-	AWS_REGION=eu-west-1 AWS_PROFILE=terraform terraform apply
+	AWS_REGION=eu-west-1 AWS_PROFILE=terraform tofu apply
 
 test:
 	npm run test

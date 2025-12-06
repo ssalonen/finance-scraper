@@ -6,7 +6,7 @@ resource "aws_iam_role_policy_attachment" "scraper-policy-attach" {
 resource "aws_lambda_function" "scraper_api_lambda" {
   function_name    = "scraper_api_lambda"
   handler          = "lib/api_index.handler"
-  runtime          = "nodejs14.x"
+  runtime          = "nodejs22.x"
   filename         = "build/finance_scraper.zip"
   source_code_hash = filebase64sha256("build/finance_scraper.zip")
   role             = aws_iam_role.scraper_api_role.arn
@@ -89,6 +89,6 @@ resource "aws_lambda_permission" "apigw" {
 
   # The /*/* portion grants access from any method on any resource
   # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_deployment.finance_scraper_deployment.execution_arn}/*/*"
+  source_arn = "${aws_api_gateway_rest_api.finance_scraper_apigw.execution_arn}/*/*"
 }
 

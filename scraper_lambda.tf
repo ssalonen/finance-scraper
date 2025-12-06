@@ -1,7 +1,7 @@
 resource "aws_lambda_function" "scraper_lambda" {
   function_name    = "scraper_lambda"
   handler          = "lib/scraper_index.handler"
-  runtime          = "nodejs14.x"
+  runtime          = "nodejs22.x"
   filename         = "build/finance_scraper.zip"
   source_code_hash = filebase64sha256("build/finance_scraper.zip")
   role             = aws_iam_role.scraper_role.arn
@@ -90,7 +90,9 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_8hours" {
 {
   "isins": [
     "LU0839027447",
-    "IE00B52MJY50"
+    "FI0009013403",
+    "IE00B5BMR087",
+    "FI0008801733"
   ]
 }
 DOC
@@ -110,8 +112,8 @@ resource "aws_cloudwatch_event_target" "scraper_cloudwatch_target_daily" {
   input = <<DOC
 {
   "isins": [
-    "FI0008801980",
-    "FI0008801790"
+    "FI0008801733",
+    "FI0009013403"
   ]
 }
 DOC

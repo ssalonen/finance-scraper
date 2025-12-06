@@ -27,7 +27,12 @@ resource "aws_api_gateway_deployment" "finance_scraper_deployment" {
   depends_on = [aws_api_gateway_integration.lambda_root]
 
   rest_api_id = aws_api_gateway_rest_api.finance_scraper_apigw.id
-  stage_name  = "test"
+}
+
+resource "aws_api_gateway_stage" "finance_scraper_deployment_stage" {
+  deployment_id = aws_api_gateway_deployment.finance_scraper_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.finance_scraper_apigw.id
+  stage_name    = "test"
 }
 
 resource "aws_api_gateway_method_settings" "s" {

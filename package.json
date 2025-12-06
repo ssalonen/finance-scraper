@@ -1,34 +1,39 @@
 {
   "name": "finance-scraper",
-  "version": "1.0.0",
+  "version": "1.0.4",
+  "type": "module",
   "description": "",
   "scripts": {
-    "package": "[[ -f build/finance_scraper.zip ]] && rm build/finance_scraper.zip ; /bin/cp -r {package.json,package-lock.json,lib,.nvmrc} build/ && npm install --prefix ./build/ --only=production && cd build && zip -r finance_scraper.zip . -i 'lib/*' -i 'node_modules/*' -i package.json -i /LICENSE -i .nvmrc",
-    "test": "standard && mocha",
-    "test-w": "standard && mocha -w",
+    "package": "[ -f build/finance_scraper.zip ] && rm build/finance_scraper.zip ; mkdir -p build/ && /bin/cp -r package.json package-lock.json lib .nvmrc build/ && npm install --prefix ./build/ --only=production && cd build && zip -r finance_scraper.zip . -i 'lib/*' -i 'node_modules/*' -i package.json -i /LICENSE -i .nvmrc",
+    "test": "eslint && mocha --bail test/*.js",
+    "test-w": "eslint && mocha -w test/*.js",
     "reprocess": "node scripts/rerunner.js"
   },
   "author": "Sami Salonen",
   "license": "",
   "devDependencies": {
-    "chai": "^4.3.4",
-    "eslint": "^7.32.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.24.2",
+    "chai": "^5.2.0",
+    "eslint": "^9.20.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-mocha": "^10.5.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0",
-    "mocha": "^9.1.4",
-    "nock": "^13.2.2",
-    "sinon": "^12.0.1",
-    "sinon-chai": "^3.7.0",
-    "standard": "^16.0.4"
+    "eslint-plugin-promise": "^7.2.1",
+    "mocha": "^11.1.0",
+    "n": "^10.1.0",
+    "neostandard": "^0.12.1",
+    "nock": "^14.0.1",
+    "npm-check-updates": "^17.1.14",
+    "sinon": "^19.0.2",
+    "sinon-chai": "^4.0.0",
+    "undici": "^7.4.0",
+    "mocha-junit-reporter": "^2.2.1",
+    "semantic-release": "^24.0.0"
   },
   "dependencies": {
-    "aws-sdk": "^2.1062.0",
-    "cheerio": "^1.0.0-rc.10",
-    "csv-parser": "^3.0.0",
-    "moment-timezone": "^0.5.34",
-    "node-fetch": "^3.2.0",
-    "npm-check-updates": "^12.2.1"
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "cheerio": "^1.0.0",
+    "csv-parser": "^3.2.0",
+    "moment-timezone": "^0.5.47"
   }
 }

@@ -40,7 +40,10 @@ if (DRY_RUN) {
 }
 
 setTimeout(() => {
-  for (const isin of ['FI0008801980']) {
+  for (const isin of ['LU0839027447',
+    'FI0009013403',
+    'IE00B5BMR087',
+    'FI0008801733']) {
     for (const suffix of ['-2021-12-2', '-2021-12-3', '-2022-01']) {
       reprocess(isin, `${isin}${suffix}`)
     }
